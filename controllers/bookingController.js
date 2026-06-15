@@ -7,11 +7,13 @@ const db = require('../lib/database'); // JALUR DIREKTORI SUDAH DIPASTIKAN BENAR
 const getAllBookings = async (req, res, next) => {
     try {
         const user = req.session.user;
+        
+        // REVISI: Ubah JOIN employees menjadi JOIN users
         let query = `
-            SELECT rl.*, r.name AS room_name, e.name AS borrower_name 
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
             FROM room_loans rl
             JOIN rooms r ON rl.room_id = r.id
-            JOIN employees e ON rl.employee_id = e.id
+            JOIN users u ON rl.employee_id = u.id
         `;
         let params = [];
 
@@ -197,10 +199,10 @@ const getExportHistoryPage = async (req, res, next) => {
         const tgl_selesai = req.query.tgl_selesai || '';
 
         let query = `
-            SELECT rl.*, r.name AS room_name, e.name AS borrower_name 
-            FROM room_loans rl
-            JOIN rooms r ON rl.room_id = r.id
-            JOIN employees e ON rl.employee_id = e.id
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
+    FROM room_loans rl
+    JOIN rooms r ON rl.room_id = r.id
+    JOIN users u ON rl.employee_id = u.id
             WHERE 1=1
         `;
         let params = [];
@@ -229,10 +231,10 @@ const downloadExportHistoryPDF = async (req, res, next) => {
     try {
         const { status, tgl_mulai, tgl_selesai } = req.query;
         let query = `
-            SELECT rl.*, r.name AS room_name, e.name AS borrower_name 
-            FROM room_loans rl
-            JOIN rooms r ON rl.room_id = r.id
-            JOIN employees e ON rl.employee_id = e.id
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
+    FROM room_loans rl
+    JOIN rooms r ON rl.room_id = r.id
+    JOIN users u ON rl.employee_id = u.id
             WHERE 1=1
         `;
         let params = [];
@@ -291,10 +293,10 @@ const getMonthlyReport = async (req, res, next) => {
         const tahun = req.query.tahun || now.getFullYear();
 
         const queryLaporan = `
-            SELECT rl.*, r.name AS room_name, e.name AS borrower_name 
-            FROM room_loans rl
-            JOIN rooms r ON rl.room_id = r.id
-            JOIN employees e ON rl.employee_id = e.id
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
+    FROM room_loans rl
+    JOIN rooms r ON rl.room_id = r.id
+    JOIN users u ON rl.employee_id = u.id
             WHERE MONTH(rl.start_time) = ? AND YEAR(rl.start_time) = ?
             ORDER BY rl.start_time ASC
         `;
@@ -311,10 +313,10 @@ const downloadMonthlyReportPDF = async (req, res, next) => {
     try {
         const { bulan, tahun } = req.query;
         const queryLaporan = `
-            SELECT rl.*, r.name AS room_name, e.name AS borrower_name 
-            FROM room_loans rl
-            JOIN rooms r ON rl.room_id = r.id
-            JOIN employees e ON rl.employee_id = e.id
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
+    FROM room_loans rl
+    JOIN rooms r ON rl.room_id = r.id
+    JOIN users u ON rl.employee_id = u.id
             WHERE MONTH(rl.start_time) = ? AND YEAR(rl.start_time) = ?
         `;
         const [bookings] = await db.query(queryLaporan, [bulan, tahun]);

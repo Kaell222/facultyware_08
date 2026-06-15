@@ -67,7 +67,7 @@ req.session.user = {
 id: user.id,
 name: user.name,
 email: user.email,
-role: userRole
+role: user.role || 'pengguna' // <--- Ganti jadi gini
 };
 
 res.redirect('/');
