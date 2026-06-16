@@ -42,8 +42,11 @@ const getAddBookingPage = async (req, res, next) => {
 
 const createBooking = async (req, res) => {
     try {
-        const { room_id, tanggal, jam_mulai, jam_selesai, purpose } = req.body;
+        const { room_id, tanggal, purpose } = req.body;
         const employee_id = req.session.user.id;
+
+        const jam_mulai = req.body.jam_mulai || req.body.start_time;
+        const jam_selesai = req.body.jam_selesai || req.body.end_time;
 
         const start_time = `${tanggal} ${jam_mulai}:00`;
         const end_time = `${tanggal} ${jam_selesai}:00`;
@@ -120,10 +123,10 @@ const downloadReceiptPDF = async (req, res, next) => {
     try {
         const bookingId = req.params.id;
         const query = `
-            SELECT rl.*, r.name AS room_name, e.name AS borrower_name 
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
             FROM room_loans rl
             JOIN rooms r ON rl.room_id = r.id
-            JOIN employees e ON rl.employee_id = e.id
+            JOIN users u ON rl.employee_id = u.id
             WHERE rl.id = ?
         `;
         const [rows] = await db.query(query, [bookingId]);
@@ -178,12 +181,28 @@ const getRealtimeAvailability = async (req, res, next) => {
         const queryKetersediaan = `
             SELECT r.id, r.name, r.code,
                 (SELECT COUNT(*) FROM room_loans WHERE room_id = r.id AND status = 'approved' AND NOW() BETWEEN start_time AND end_time) as is_booked,
-                (SELECT e.name FROM room_loans rl JOIN employees e ON rl.employee_id = e.id WHERE rl.room_id = r.id AND rl.status = 'approved' AND NOW() BETWEEN rl.start_time AND rl.end_time LIMIT 1) as current_borrower,
+                (SELECT u.name FROM room_loans rl JOIN users u ON rl.employee_id = u.id WHERE rl.room_id = r.id AND rl.status = 'approved' AND NOW() BETWEEN rl.start_time AND rl.end_time LIMIT 1) as current_borrower,
                 (SELECT end_time FROM room_loans WHERE room_id = r.id AND status = 'approved' AND NOW() BETWEEN start_time AND end_time LIMIT 1) as end_time
             FROM rooms r
         `;
         const [rooms] = await db.query(queryKetersediaan);
-        res.render('ketersediaan', { title: 'Jadwal Ruangan Real-time', rooms, user: req.session.user });
+
+        // Fetch all bookings for the calendar view
+        const queryBookings = `
+            SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
+            FROM room_loans rl
+            JOIN rooms r ON rl.room_id = r.id
+            JOIN users u ON rl.employee_id = u.id
+            ORDER BY rl.start_time ASC
+        `;
+        const [bookings] = await db.query(queryBookings);
+
+        res.render('ketersediaan', { 
+            title: 'Jadwal Ruangan Real-time', 
+            rooms, 
+            bookings, 
+            user: req.session.user 
+        });
     } catch (err) {
         next(err);
     }
@@ -360,6 +379,117 @@ const downloadMonthlyReportPDF = async (req, res, next) => {
     }
 };
 
+// ========================================================
+// IMPLEMENTASI FITUR EDIT & DELETE (PENANGGUNG JAWAB)
+// ========================================================
+
+const getEditBookingPage = async (req, res, next) => {
+    try {
+        const user = req.session.user;
+        if (user.role !== 'penanggung_jawab') {
+            return res.status(403).send("Akses ditolak. Hanya Penanggung Jawab yang dapat mengubah peminjaman.");
+        }
+
+        const bookingId = req.params.id;
+        const [bookings] = await db.query("SELECT * FROM room_loans WHERE id = ?", [bookingId]);
+        if (bookings.length === 0) {
+            return res.status(404).send("Data peminjaman tidak ditemukan.");
+        }
+
+        const booking = bookings[0];
+        
+        // Format tanggal, jam mulai, dan jam selesai
+        const start = new Date(booking.start_time);
+        const end = new Date(booking.end_time);
+
+        // Helper untuk format YYYY-MM-DD
+        const year = start.getFullYear();
+        const month = String(start.getMonth() + 1).padStart(2, '0');
+        const day = String(start.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+
+        // Helper untuk format HH:MM
+        const startHour = String(start.getHours()).padStart(2, '0');
+        const startMin = String(start.getMinutes()).padStart(2, '0');
+        const formattedStart = `${startHour}:${startMin}`;
+
+        const endHour = String(end.getHours()).padStart(2, '0');
+        const endMin = String(end.getMinutes()).padStart(2, '0');
+        const formattedEnd = `${endHour}:${endMin}`;
+
+        const [rooms] = await db.query("SELECT id, name FROM rooms");
+
+        res.render('edit-booking', { 
+            title: 'Edit Peminjaman Ruangan', 
+            booking, 
+            rooms, 
+            formattedDate, 
+            formattedStart, 
+            formattedEnd 
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const updateBooking = async (req, res) => {
+    try {
+        const user = req.session.user;
+        if (user.role !== 'penanggung_jawab') {
+            return res.status(403).json({ error: "Akses ditolak." });
+        }
+
+        const bookingId = req.params.id;
+        const { room_id, tanggal, purpose, status } = req.body;
+
+        const jam_mulai = req.body.jam_mulai || req.body.start_time;
+        const jam_selesai = req.body.jam_selesai || req.body.end_time;
+
+        const start_time = `${tanggal} ${jam_mulai}:00`;
+        const end_time = `${tanggal} ${jam_selesai}:00`;
+
+        // Cek konflik dengan mengecualikan peminjaman saat ini
+        const checkConflictQuery = `
+            SELECT id FROM room_loans 
+            WHERE room_id = ? 
+            AND id != ?
+            AND status IN ('requested', 'approved')
+            AND ((start_time < ? AND end_time > ?) OR (start_time < ? AND end_time > ?))
+        `;
+        const [conflicts] = await db.query(checkConflictQuery, [room_id, bookingId, end_time, start_time, start_time, end_time]);
+
+        if (conflicts.length > 0) {
+            return res.status(400).json({ error: "Ruangan sudah terpakai atau diajukan pada jam tersebut!" });
+        }
+
+        const updateQuery = `
+            UPDATE room_loans 
+            SET room_id = ?, start_time = ?, end_time = ?, purpose = ?, status = ?
+            WHERE id = ?
+        `;
+        await db.query(updateQuery, [room_id, start_time, end_time, purpose, status, bookingId]);
+
+        res.status(200).json({ message: "Peminjaman berhasil diperbarui." });
+    } catch (err) {
+        res.status(500).json({ error: "Gagal memperbarui peminjaman: " + err.message });
+    }
+};
+
+const deleteBooking = async (req, res, next) => {
+    try {
+        const user = req.session.user;
+        if (user.role !== 'penanggung_jawab') {
+            return res.status(403).send("Akses ditolak.");
+        }
+
+        const bookingId = req.params.id;
+        await db.query("DELETE FROM room_loans WHERE id = ?", [bookingId]);
+        res.redirect('/bookings');
+    } catch (err) {
+        next(err);
+    }
+};
+
 module.exports = {
     getAllBookings,
     getAddBookingPage,
@@ -371,5 +501,8 @@ module.exports = {
     getExportHistoryPage,
     downloadExportHistoryPDF,
     getMonthlyReport,
-    downloadMonthlyReportPDF
+    downloadMonthlyReportPDF,
+    getEditBookingPage,
+    updateBooking,
+    deleteBooking
 };

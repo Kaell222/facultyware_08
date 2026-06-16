@@ -51,20 +51,31 @@
                                     <% } %>
                                 </td>
                                 <td class="p-4 text-center">
-                                    <div class="flex gap-2 justify-center">
-                                        <% if (user.role === 'penanggung_jawab' && booking.status === 'requested') { %>
-                                            <form action="/bookings/<%= booking.id %>/action" method="POST" class="inline">
-                                                <input type="hidden" name="action_status" value="approved">
-                                                <button type="submit" class="btn btn-sm btn-success text-xs px-2 py-1">ACC</button>
-                                            </form>
-                                            <form action="/bookings/<%= booking.id %>/action" method="POST" class="inline">
-                                                <input type="hidden" name="action_status" value="rejected">
-                                                <button type="submit" class="btn btn-sm btn-danger text-xs px-2 py-1">Tolak</button>
-                                            </form>
-                                        <% } else if (user.role === 'penanggung_jawab' && booking.status === 'approved') { %>
-                                            <form action="/bookings/<%= booking.id %>/action" method="POST" class="inline">
-                                                <input type="hidden" name="action_status" value="completed">
-                                                <button type="submit" class="btn btn-sm btn-primary text-xs px-2 py-1">Selesai</button>
+                                    <div class="flex gap-2 justify-center items-center">
+                                        <% if (user.role === 'penanggung_jawab') { %>
+                                            <!-- Quick Status Actions -->
+                                            <% if (booking.status === 'requested') { %>
+                                                <form action="/bookings/<%= booking.id %>/action" method="POST" class="inline">
+                                                    <input type="hidden" name="action_status" value="approved">
+                                                    <button type="submit" class="btn btn-sm btn-success text-xs px-2 py-1">ACC</button>
+                                                </form>
+                                                <form action="/bookings/<%= booking.id %>/action" method="POST" class="inline">
+                                                    <input type="hidden" name="action_status" value="rejected">
+                                                    <button type="submit" class="btn btn-sm btn-danger text-xs px-2 py-1">Tolak</button>
+                                                </form>
+                                            <% } else if (booking.status === 'approved') { %>
+                                                <form action="/bookings/<%= booking.id %>/action" method="POST" class="inline">
+                                                    <input type="hidden" name="action_status" value="completed">
+                                                    <button type="submit" class="btn btn-sm btn-primary text-xs px-2 py-1">Selesai</button>
+                                                </form>
+                                            <% } %>
+
+                                            <!-- Core Management Actions (Edit & Hapus) -->
+                                            <a href="/bookings/<%= booking.id %>/edit" class="btn btn-sm btn-outline text-xs px-2 py-1 rounded border bg-transparent hover:bg-accent text-foreground">
+                                                Edit
+                                            </a>
+                                            <form action="/bookings/<%= booking.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus peminjaman ini?');">
+                                                <button type="submit" class="btn btn-sm btn-danger text-xs px-2 py-1 rounded">Hapus</button>
                                             </form>
                                         <% } %>
 

@@ -41,7 +41,42 @@ router.get('/', async function(req, res, next) {
 
         // Diubah agar sesuai dengan nama file di VS Code kamu (menggunakan tanda hubung)
         if (req.session.user.role === 'penanggung_jawab') {
-            res.render('dashboard-admin', { title: 'Dashboard Penanggung Jawab', stats });
+            // Fetch popular rooms
+            const [popularRooms] = await db.query(`
+                SELECT r.name AS room_name, COUNT(rl.id) AS booking_count
+                FROM room_loans rl
+                JOIN rooms r ON rl.room_id = r.id
+                GROUP BY rl.room_id, r.name
+                ORDER BY booking_count DESC
+                LIMIT 5
+            `);
+
+            // Fetch monthly trends (last 6 months)
+            const [monthlyTrends] = await db.query(`
+                SELECT DATE_FORMAT(start_time, '%Y-%m') AS month, COUNT(id) AS booking_count
+                FROM room_loans
+                WHERE start_time >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+                GROUP BY DATE_FORMAT(start_time, '%Y-%m')
+                ORDER BY month ASC
+            `);
+
+            // Fetch recent bookings (last 5)
+            const [recentBookings] = await db.query(`
+                SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
+                FROM room_loans rl
+                JOIN rooms r ON rl.room_id = r.id
+                JOIN users u ON rl.employee_id = u.id
+                ORDER BY rl.start_time DESC
+                LIMIT 5
+            `);
+
+            res.render('dashboard-admin', { 
+                title: 'Dashboard Penanggung Jawab', 
+                stats,
+                popularRooms,
+                monthlyTrends,
+                recentBookings
+            });
         } else {
             res.render('dashboard-user', { title: 'Dashboard Pengguna', stats });
         }

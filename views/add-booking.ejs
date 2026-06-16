@@ -25,11 +25,13 @@
         <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium">Jam Mulai</label>
-                <input type="time" name="jam_mulai" required class="form-control text-sm h-9 rounded-md border bg-transparent px-3">
+                <input type="time" id="start_time" name="start_time" step="1800" required 
+       class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
             </div>
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium">Jam Selesai</label>
-                <input type="time" name="jam_selesai" required class="form-control text-sm h-9 rounded-md border bg-transparent px-3">
+                <input type="time" id="end_time" name="end_time" step="1800" required 
+       class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
             </div>
         </div>
 
@@ -48,6 +50,7 @@
 </div>
 
 <script>
+    // FUNGSI 1: Handler Submit Form
     document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const notif = document.getElementById('notif');
@@ -70,21 +73,57 @@
             notif.style.display = 'block';
 
             if (response.status === 200) {
-                notif.className = "p-3 rounded-md text-sm font-medium bg-green-100 text-green-800";
+                notif.className = "p-3 mb-4 rounded-md text-sm font-medium bg-green-100 text-green-800";
                 notif.innerText = result.message;
                 setTimeout(() => window.location.href = '/bookings', 1500);
             } else {
-                notif.className = "p-3 rounded-md text-sm font-medium bg-red-100 text-red-800";
+                notif.className = "p-3 mb-4 rounded-md text-sm font-medium bg-red-100 text-red-800";
                 notif.innerText = result.error;
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Ajukan Peminjaman";
             }
         } catch (err) {
             notif.style.display = 'block';
-            notif.className = "p-3 rounded-md text-sm font-medium bg-red-100 text-red-800";
+            notif.className = "p-3 mb-4 rounded-md text-sm font-medium bg-red-100 text-red-800";
             notif.innerText = "Terjadi kesalahan koneksi jaringan.";
             submitBtn.disabled = false;
             submitBtn.innerText = "Ajukan Peminjaman";
         }
+    });
+
+    // FUNGSI 2: Auto-Snap Jam ke 00 atau 30
+    const timeInputs = document.querySelectorAll('input[type="time"]');
+    timeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (!this.value) return;
+
+            let [hour, minute] = this.value.split(':');
+            let minInt = parseInt(minute);
+
+            if (minInt !== 0 && minInt !== 30) {
+                if (minInt < 15) {
+                    minute = '00';
+                } else if (minInt < 45) {
+                    minute = '30';
+                } else {
+                    minute = '00';
+                    hour = (parseInt(hour) + 1).toString().padStart(2, '0');
+                    if (hour === '24') hour = '00';
+                }
+                
+                this.value = `${hour}:${minute}`;
+                
+                // Tampilkan notif biar user nggak bingung kenapa angkanya berubah
+                const notif = document.getElementById('notif');
+                notif.style.display = 'block';
+                notif.className = "p-3 mb-4 rounded-md text-sm font-medium bg-amber-100 text-amber-800 border border-amber-200";
+                notif.innerText = "Sistem hanya mengizinkan interval 30 menit. Waktu Anda disesuaikan otomatis.";
+                
+                // Hilangkan notif kuningnya setelah 4 detik biar formnya bersih lagi
+                setTimeout(() => {
+                    notif.style.display = 'none';
+                }, 4000);
+            }
+        });
     });
 </script>

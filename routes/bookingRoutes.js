@@ -18,6 +18,11 @@ router.post('/:id/action', bookingController.handleAction);
 router.post('/:id/cancel', bookingController.cancelBooking);
 router.get('/:id/download', bookingController.downloadReceiptPDF);
 
+// FITUR: Edit & Delete oleh Penanggung Jawab
+router.get('/:id/edit', bookingController.getEditBookingPage);
+router.post('/:id/edit', bookingController.updateBooking);
+router.post('/:id/delete', bookingController.deleteBooking);
+
 // FITUR: Ketersediaan Real-time & Laporan
 router.get('/ketersediaan', bookingController.getRealtimeAvailability);
 router.get('/export/riwayat', bookingController.getExportHistoryPage);
