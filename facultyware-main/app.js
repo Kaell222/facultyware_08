@@ -4,20 +4,21 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
-var expressLayouts = require('express-ejs-layouts'); // <-- IMPORT LAYOUT DI SINI
+var expressLayouts = require('express-ejs-layouts');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var bookingRouter = require('./routes/bookingRoutes');
+var apiRouter = require('./routes/apiRoutes');
 const { notFoundHandler, errorHandler } = require('./middlewares/error');
 
 var app = express();
 
-// --- 1. SETUP VIEW ENGINE & LAYOUT (WAJIB DI ATAS) ---
+// 1. SETUP VIEW ENGINE & ENGINE MASTER LAYOUT EJS
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use(expressLayouts); // Mengaktifkan layouting
-app.set('layout', 'layout'); // Kasih tau Express kalau file masternya namanya 'layout.ejs'
+app.use(expressLayouts);
+app.set('layout', 'layout'); 
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -25,25 +26,28 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- 2. SETUP SESSION ---
+// 2. MIDDLEWARE CONFIG EXPRESS-SESSION
 app.use(session({
-  secret: 'kunci-rahasia-dosen-pweb',
+  secret: 'facultyware-secret-session-key-2026',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: { secure: false } // Set ke true jika menggunakan HTTPS di server production
 }));
+
+// Mengatur variabel global agar otomatis terbaca di file views .ejs
 app.use((req, res, next) => {
-  // Variabel ini otomatis bisa dibaca di SEMUA file .ejs lu tanpa harus dikirim manual
   res.locals.user = req.session.user || null;
-  res.locals.title = 'Facultyware Peminjaman';
+  res.locals.title = 'Facultyware';
   next();
 });
 
-// --- 3. PENDAFTARAN RUTE (WAJIB DI BAWAH LAYOUT & SESSION) ---
+// 3. DAFTAR UTAMA ROUTING APLIKASI
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/bookings', bookingRouter);
+app.use('/bookings', bookingRouter); // Seluruh submenu booking diatur via bookingRouter
+app.use('/api', apiRouter);
 
+// 4. PENANGANAN ERROR GLOBAL
 app.use(notFoundHandler);
 app.use(errorHandler);
 

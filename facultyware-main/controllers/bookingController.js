@@ -7,25 +7,71 @@ const db = require('../lib/database'); // JALUR DIREKTORI SUDAH DIPASTIKAN BENAR
 const getAllBookings = async (req, res, next) => {
     try {
         const user = req.session.user;
-        
-        // REVISI: Ubah JOIN employees menjadi JOIN users
-        let query = `
+        const search = req.query.search || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        // 1. Dapatkan total data dengan filter pencarian dan pembatasan user
+        let countQuery = `
+            SELECT COUNT(*) AS total
+            FROM room_loans rl
+            JOIN rooms r ON rl.room_id = r.id
+            JOIN users u ON rl.employee_id = u.id
+            WHERE 1=1
+        `;
+        let countParams = [];
+
+        if (user.role !== 'penanggung_jawab') {
+            countQuery += " AND rl.employee_id = ?";
+            countParams.push(user.id);
+        }
+
+        if (search) {
+            countQuery += " AND (u.name LIKE ? OR r.name LIKE ? OR rl.purpose LIKE ?)";
+            const searchTerm = `%${search}%`;
+            countParams.push(searchTerm, searchTerm, searchTerm);
+        }
+
+        const [countRows] = await db.query(countQuery, countParams);
+        const totalRows = countRows[0].total;
+        const totalPages = Math.ceil(totalRows / limit) || 1;
+
+        // 2. Ambil data per halaman dengan limit & offset
+        let dataQuery = `
             SELECT rl.*, r.name AS room_name, u.name AS borrower_name 
             FROM room_loans rl
             JOIN rooms r ON rl.room_id = r.id
             JOIN users u ON rl.employee_id = u.id
+            WHERE 1=1
         `;
-        let params = [];
+        let dataParams = [];
 
         if (user.role !== 'penanggung_jawab') {
-            query += " WHERE rl.employee_id = ?";
-            params.push(user.id);
+            dataQuery += " AND rl.employee_id = ?";
+            dataParams.push(user.id);
         }
 
-        query += " ORDER BY rl.start_time DESC";
-        const [bookings] = await db.query(query, params);
+        if (search) {
+            dataQuery += " AND (u.name LIKE ? OR r.name LIKE ? OR rl.purpose LIKE ?)";
+            const searchTerm = `%${search}%`;
+            dataParams.push(searchTerm, searchTerm, searchTerm);
+        }
 
-        res.render('booking-list', { title: 'Peminjaman Ruangan', bookings });
+        dataQuery += " ORDER BY rl.start_time DESC LIMIT ? OFFSET ?";
+        dataParams.push(limit, offset);
+
+        const [bookings] = await db.query(dataQuery, dataParams);
+
+        res.render('booking-list', { 
+            title: 'Peminjaman Ruangan', 
+            bookings, 
+            currentPage: page, 
+            totalPages, 
+            totalRows, 
+            limit,
+            search 
+        });
     } catch (err) {
         next(err);
     }

@@ -1,18 +1,15 @@
 <div class="max-w-screen-lg mx-auto">
-    <header class="flex flex-col gap-4 mb-8">
-        <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Ekspor Riwayat Peminjaman</h1>
-            <p class="text-muted-foreground">Filter dan unduh riwayat peminjaman ruangan dalam format PDF.</p>
-        </div>
+    <header class="flex flex-col gap-2 mb-6">
+        <h1 class="text-2xl font-bold">Ekspor Riwayat Peminjaman</h1>
+        <p class="text-muted-foreground text-sm">Filter dan unduh arsip data peminjaman ruangan dalam format PDF.</p>
     </header>
 
-    <!-- Form Filter -->
-    <div class="card p-6 mb-6">
+    <div class="card p-4 bg-card border rounded-xl mb-6">
         <form action="/bookings/export/riwayat" method="GET">
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Status</label>
-                    <select name="status" class="input w-full">
+                    <label class="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">Status Peminjaman</label>
+                    <select name="status" class="form-select text-sm w-full border rounded-md h-9 px-2 bg-transparent">
                         <option value="">Semua Status</option>
                         <option value="requested" <%= status === 'requested' ? 'selected' : '' %>>Menunggu</option>
                         <option value="approved" <%= status === 'approved' ? 'selected' : '' %>>Disetujui</option>
@@ -21,54 +18,44 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Tanggal Mulai</label>
-                    <input type="date" name="tgl_mulai" value="<%= tgl_mulai %>" class="input w-full">
+                    <label class="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">Tanggal Mulai</label>
+                    <input type="date" name="tgl_mulai" value="<%= tgl_mulai %>" class="form-control text-sm w-full border rounded-md h-9 px-2 bg-transparent">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1">Tanggal Selesai</label>
-                    <input type="date" name="tgl_selesai" value="<%= tgl_selesai %>" class="input w-full">
+                    <label class="block text-xs font-semibold mb-1 uppercase tracking-wider text-muted-foreground">Tanggal Selesai</label>
+                    <input type="date" name="tgl_selesai" value="<%= tgl_selesai %>" class="form-control text-sm w-full border rounded-md h-9 px-2 bg-transparent">
                 </div>
             </div>
-            <div style="display: flex; gap: 12px;">
-                <button type="submit" class="btn btn-primary">Filter</button>
-                <a href="/bookings/export/riwayat/download?status=<%= status %>&tgl_mulai=<%= tgl_mulai %>&tgl_selesai=<%= tgl_selesai %>" 
-                   class="btn btn-primary">Download PDF</a>
+            <div class="flex gap-2">
+                <button type="submit" class="btn btn-sm btn-dark text-sm h-9 px-4 rounded-md">Filter Data</button>
+                <a href="/bookings/export/riwayat/download?status=<%= status %>&tgl_mulai=<%= tgl_mulai %>&tgl_selesai=<%= tgl_selesai %>" class="btn btn-sm btn-primary text-sm h-9 px-4 rounded-md flex items-center text-white text-decoration-none">Cetak PDF</a>
             </div>
         </form>
     </div>
 
-    <!-- Preview Data -->
-    <div class="card overflow-hidden">
-        <div class="p-4 border-b">
-            <h2 class="font-semibold">Preview Data (<%= bookings.length %> data)</h2>
-        </div>
+    <div class="card border rounded-xl overflow-hidden bg-card">
+        <div class="p-3 bg-muted/50 border-b font-medium text-sm">Preview Hasil Filter (<%= bookings.length %> data ditemukan)</div>
         <table class="w-full text-sm">
-            <thead class="bg-muted/50">
+            <thead class="bg-muted/30 border-b text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
-                    <th class="h-10 px-4 text-left font-bold text-muted-foreground">No</th>
-                    <th class="h-10 px-4 text-left font-bold text-muted-foreground">Peminjam</th>
-                    <th class="h-10 px-4 text-left font-bold text-muted-foreground">Ruangan</th>
-                    <th class="h-10 px-4 text-left font-bold text-muted-foreground">Tanggal</th>
-                    <th class="h-10 px-4 text-left font-bold text-muted-foreground">Status</th>
+                    <th class="p-3 text-left">No.</th>
+                    <th class="p-3 text-left">Peminjam</th>
+                    <th class="p-3 text-left">Ruangan</th>
+                    <th class="p-3 text-left">Tanggal</th>
+                    <th class="p-3 text-left">Status</th>
                 </tr>
             </thead>
             <tbody>
-                <% if (bookings && bookings.length > 0) { %>
-                    <% bookings.forEach(function(booking, index) { %>
-                        <tr class="border-b hover:bg-muted/50">
-                            <td class="p-4"><%= index + 1 %></td>
-                            <td class="p-4"><%= booking.borrower_name || '-' %></td>
-                            <td class="p-4"><%= booking.room_name %></td>
-                            <td class="p-4"><%= new Date(booking.start_time).toLocaleDateString('id-ID') %></td>
-                            <td class="p-4"><%= booking.status %></td>
-                        </tr>
-                    <% }); %>
-                <% } else { %>
-                    <tr>
-                        <td colspan="5" class="p-4 text-center text-muted-foreground">
-                            Tidak ada data yang sesuai filter.
-                        </td>
+                <% if (bookings.length > 0) { bookings.forEach(function(b, idx) { %>
+                    <tr class="border-b hover:bg-muted/50">
+                        <td class="p-3"><%= idx + 1 %></td>
+                        <td class="p-3 font-medium"><%= b.borrower_name %></td>
+                        <td class="p-3"><%= b.room_name %></td>
+                        <td class="p-3 text-muted-foreground"><%= new Date(b.start_time).toLocaleDateString('id-ID') %></td>
+                        <td class="p-3 font-semibold text-xs uppercase"><%= b.status %></td>
                     </tr>
+                <% }); } else { %>
+                    <tr><td colspan="5" class="p-4 text-center text-muted-foreground">Tidak ada data riwayat peminjaman yang cocok.</td></tr>
                 <% } %>
             </tbody>
         </table>
