@@ -1,6 +1,8 @@
+<!-- FULLCALENDAR CDN -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
+<!-- CUSTOM FULLCALENDAR OVERRIDES FOR DARK MODE & SHADCN/UI STYLE -->
 <style>
     /* Light Mode Calendar Styles */
     .fc {
@@ -93,10 +95,58 @@
     .dark .fc-day-today {
         background-color: rgba(63, 63, 70, 0.2) !important;
     }
+
+    /* Custom Event Styles */
+    .fc-event-completed {
+        border: 1px solid #cbd5e1 !important;
+    }
+    .dark .fc-event-completed {
+        border: 1px solid #27272a !important;
+    }
+
+    /* Status Badges */
+    .badge-status-approved {
+        background-color: #d1fae5 !important;
+        color: #065f46 !important;
+    }
+    .dark .badge-status-approved {
+        background-color: rgba(6, 95, 70, 0.3) !important;
+        color: #34d399 !important;
+    }
+
+    .badge-status-completed {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    .dark .badge-status-completed {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: #f8fafc !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .badge-status-rejected {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+    }
+    .dark .badge-status-rejected {
+        background-color: rgba(153, 27, 27, 0.3) !important;
+        color: #f87171 !important;
+    }
+
+    .badge-status-requested {
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+    }
+    .dark .badge-status-requested {
+        background-color: rgba(146, 64, 14, 0.3) !important;
+        color: #fbbf24 !important;
+    }
 </style>
 
 <div class="space-y-8 max-w-screen-xl mx-auto">
     
+    <!-- HEADER -->
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b pb-6 dark:border-zinc-800">
         <div>
             <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent dark:from-sky-400 dark:to-indigo-400">
@@ -112,10 +162,14 @@
         </div>
     </div>
 
+    <!-- MAIN GRID LAYOUT -->
     <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
         
+        <!-- SIDEBAR (ROOM LIST & FILTERS) -->
         <div class="xl:col-span-1 space-y-6">
             
+
+            <!-- Calendar Filtering -->
             <div class="card p-5 space-y-4 bg-card border dark:bg-zinc-900/20 dark:border-zinc-800 shadow-sm">
                 <div>
                     <h3 class="font-bold text-base">Filter Kalender</h3>
@@ -131,30 +185,32 @@
                 </div>
             </div>
 
-            <div class="card p-5 space-y-3 bg-card border dark:bg-zinc-900/20 dark:border-zinc-800 shadow-sm rounded-xl">
-                <div class="font-bold text-base text-foreground">Keterangan Warna:</div>
-                <div class="grid grid-cols-2 gap-3 text-sm text-muted-foreground mt-2">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-3.5 h-3.5 rounded bg-amber-500 shadow-sm flex-shrink-0"></div>
-                        <span class="font-medium text-foreground">Menunggu</span>
+            <!-- Legend Status -->
+            <div class="card p-4 space-y-3 bg-card border dark:bg-zinc-900/20 dark:border-zinc-800 shadow-sm text-xs text-muted-foreground">
+                <div class="font-semibold text-foreground">Keterangan Warna Kalender:</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex items-center gap-1.5">
+                        <span style="width: 12px; height: 12px; border-radius: 4px; background-color: #f59e0b; display: inline-block; border: 1px solid rgba(245, 158, 11, 0.2);"></span>
+                        <span>Menunggu</span>
                     </div>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-3.5 h-3.5 rounded bg-green-500 shadow-sm flex-shrink-0"></div>
-                        <span class="font-medium text-foreground">Disetujui</span>
+                    <div class="flex items-center gap-1.5">
+                        <span style="width: 12px; height: 12px; border-radius: 4px; background-color: #10b981; display: inline-block; border: 1px solid rgba(16, 185, 129, 0.2);"></span>
+                        <span>Disetujui</span>
                     </div>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-3.5 h-3.5 rounded bg-blue-500 shadow-sm flex-shrink-0"></div>
-                        <span class="font-medium text-foreground">Selesai</span>
+                    <div class="flex items-center gap-1.5">
+                        <span style="width: 12px; height: 12px; border-radius: 4px; background-color: #ffffff; display: inline-block; border: 1px solid #cbd5e1;"></span>
+                        <span>Selesai</span>
                     </div>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-3.5 h-3.5 rounded bg-red-500 shadow-sm flex-shrink-0"></div>
-                        <span class="font-medium text-foreground">Ditolak</span>
+                    <div class="flex items-center gap-1.5">
+                        <span style="width: 12px; height: 12px; border-radius: 4px; background-color: #ef4444; display: inline-block; border: 1px solid rgba(239, 68, 68, 0.2);"></span>
+                        <span>Ditolak</span>
                     </div>
                 </div>
             </div>
 
         </div>
 
+        <!-- CALENDAR AREA -->
         <div class="xl:col-span-3 card p-5 bg-card border dark:bg-zinc-900/20 dark:border-zinc-800 shadow-sm">
             <div id="calendar" class="w-full"></div>
         </div>
@@ -163,6 +219,7 @@
 
 </div>
 
+<!-- DETAILED EVENT DETAILS MODAL (POP-UP) -->
 <div id="eventModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 opacity-0 pointer-events-none transition-all duration-300" onclick="if(event.target === this) closeModal();">
     <div class="bg-card w-full max-w-md rounded-2xl border dark:border-zinc-800 p-6 shadow-xl space-y-5 transform scale-95 transition-all duration-300 relative bg-background">
         <div class="flex justify-between items-start border-b pb-3 dark:border-zinc-800">
@@ -236,13 +293,13 @@
         
         badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ";
         if (status === "approved") {
-            badge.className += "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400";
+            badge.className += "badge-status-approved";
         } else if (status === "completed") {
-            badge.className += "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400";
+            badge.className += "badge-status-completed";
         } else if (status === "rejected") {
-            badge.className += "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400";
+            badge.className += "badge-status-rejected";
         } else {
-            badge.className += "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400";
+            badge.className += "badge-status-requested";
         }
 
         const modal = document.getElementById("eventModal");
@@ -259,14 +316,27 @@
     // ─── 3. FULLCALENDAR INTEGRATION ─────────────────────────────────────────────
     document.addEventListener("DOMContentLoaded", () => {
         // Parse raw bookings data passed from EJS
-        const container = document.getElementById('bookingDataContainer');
-        const rawBookings = JSON.parse(container.dataset.bookings);
+const container = document.getElementById('bookingDataContainer');
+const rawBookings = JSON.parse(container.dataset.bookings);
         // Map raw bookings to FullCalendar event format
         const events = rawBookings.map(b => {
-            let color = "#f59e0b"; // Default requested (Amber)
-            if (b.status === "approved") color = "#10b981"; // Green
-            else if (b.status === "completed") color = "#3b82f6"; // Blue
-            else if (b.status === "rejected") color = "#ef4444"; // Red
+            let color = "#f59e0b"; // Default requested (Amber/Yellow)
+            let borderColor = "#f59e0b";
+            let textColor = "#ffffff";
+            let classNames = [];
+            
+            if (b.status === "approved") {
+                color = "#10b981"; // Green
+                borderColor = "#10b981";
+            } else if (b.status === "completed") {
+                color = "#ffffff"; // White
+                borderColor = "#cbd5e1";
+                textColor = "#0f172a"; // Dark text
+                classNames = ["fc-event-completed"];
+            } else if (b.status === "rejected") {
+                color = "#ef4444"; // Red
+                borderColor = "#ef4444";
+            }
 
             return {
                 id: String(b.id),
@@ -275,7 +345,9 @@
                 start: b.start_time,
                 end: b.end_time,
                 backgroundColor: color,
-                borderColor: color,
+                borderColor: borderColor,
+                textColor: textColor,
+                classNames: classNames,
                 extendedProps: {
                     roomName: b.room_name,
                     borrowerName: b.borrower_name,
