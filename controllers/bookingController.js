@@ -132,47 +132,17 @@ const downloadReceiptPDF = async (req, res, next) => {
         const [rows] = await db.query(query, [bookingId]);
 
         if (rows.length === 0) return res.status(404).send("Data tidak ditemukan.");
+        
+        // Simpan data di variabel 'b'
         const b = rows[0];
 
-        res.send(`
-            <html>
-            <head>
-                <title>Bukti Peminjaman #${b.id}</title>
-                <style>
-                    body { font-family: sans-serif; padding: 40px; color: #333; }
-                    .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 30px; }
-                    .title { font-size: 20px; font-weight: bold; }
-                    .content p { font-size: 14px; line-height: 2; }
-                    .footer { margin-top: 50px; text-align: center; font-style: italic; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <div class="title">FACULTYWARE - UNIVERSITAS ANDALAS</div>
-                    <div>SURAT IZIN RESMI PEMAKAIAN RUANGAN</div>
-                </div>
-                <div class="content">
-                    <p><b>Nomor Dokumen :</b> FTW/SRT/${b.id}/${new Date().getFullYear()}</p>
-                    <p><b>Status Dokumen :</b> ${b.status.toUpperCase()}</p>
-                    <p><b>Nama Peminjam :</b> ${b.borrower_name}</p>
-                    <p><b>Nama Ruangan  :</b> ${b.room_name}</p>
-                    <p><b>Waktu Pemakaian:</b> ${new Date(b.start_time).toLocaleString('id-ID')} s.d ${new Date(b.end_time).toLocaleString('id-ID')}</p>
-                    <p><b>Keperluan     :</b> ${b.purpose}</p>
-                </div>
-                <div class="footer">
-                    Dikeluarkan secara sah oleh Sistem Informasi Peminjaman Ruangan Facultyware.
-                </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                </script>
-            </body>
-            </html>
-        `);
+        // RENDER FILE surat-izin.ejs DAN KIRIMKAN DATA 'b'
+        res.render('surat-izin', { b: b });
+
     } catch (err) {
         next(err);
     }
 };
-
 // ========================================================
 // FITUR 7: JADWAL REALTIME
 // ========================================================
