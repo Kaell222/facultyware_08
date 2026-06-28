@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Surat Izin Pemakaian Ruangan #<%= b.id %></title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            line-height: 1.5;
+            padding: 40px;
+            max-width: 800px;
+            margin: auto;
+        }
+        
+        /* --- PENGATURAN KOP SURAT --- */
+        .kop-surat {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .logo-unand {
+            width: 100px;
+            flex-shrink: 0; /* Mencegah logo mengecil */
+        }
+        .teks-kop {
+            flex-grow: 1; /* Mengambil sisa ruang di tengah */
+            text-align: center;
+        }
+        /* Elemen dummy di kanan agar teks benar-benar di tengah */
+        .kop-surat::after {
+            content: "";
+            width: 100px; 
+            flex-shrink: 0;
+        }
+        
+        .teks-kop h3, .teks-kop h2 {
+            margin: 0;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+        .teks-kop p {
+            margin: 2px 0 0 0;
+            font-size: 14px;
+            text-align: center; /* Memaksa rata tengah khusus untuk paragraf di dalam kop */
+        }
+        /* --------------------------- */
+
+        .garis-kop {
+            border: 0;
+            border-top: 3px solid black;
+            border-bottom: 1px solid black;
+            height: 2px;
+            margin-bottom: 30px;
+        }
+        .judul-surat {
+            text-align: center;
+            text-decoration: underline;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .nomor-surat {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 40px;
+        }
+        .tabel-detail {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .tabel-detail td {
+            padding: 6px;
+            vertical-align: top;
+            font-size: 16px;
+        }
+        
+        /* Pengaturan global paragraf isi surat (rata kiri-kanan) */
+        p {
+            text-align: justify;
+            font-size: 16px;
+        }
+        
+        .ttd-container {
+            width: 300px;
+            float: right;
+            text-align: left;
+            margin-top: 40px;
+        }
+        /* Hilangkan margin bawaan browser saat diprint */
+        @media print {
+            @page { margin: 1.5cm; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="kop-surat">
+        <img src="/assets/images/IMG_8662.PNG" alt="Logo Unand" class="logo-unand">
+        <div class="teks-kop">
+            <h3>KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</h3>
+            <h2>UNIVERSITAS ANDALAS</h2>
+            <h2>FAKULTAS TEKNOLOGI INFORMASI</h2>
+            <p>Kampus Unand Limau Manis, Padang 25163</p>
+            <p>Laman: fti.unand.ac.id | Email: sekretariat@fti.unand.ac.id</p>
+        </div>
+    </div>
+    <hr class="garis-kop">
+
+    <div class="judul-surat">SURAT IZIN RESMI PEMAKAIAN RUANGAN</div>
+    <p class="nomor-surat">Nomor : FTI/SRT/<%= b.id %>/<%= new Date().getFullYear() %></p>
+
+    <p>Berdasarkan pengajuan peminjaman ruangan melalui Sistem Informasi Peminjaman Ruangan Facultyware, dengan ini pimpinan/pengelola memberikan izin penggunaan fasilitas kepada:</p>
+
+    <table class="tabel-detail">
+        <tr>
+            <td width="30%"><strong>Nama Peminjam</strong></td>
+            <td width="2%">:</td>
+            <td><%= b.borrower_name %></td>
+        </tr>
+        <tr>
+            <td><strong>Nama Ruangan</strong></td>
+            <td>:</td>
+            <td><%= b.room_name %></td>
+        </tr>
+        <tr>
+            <td><strong>Waktu Pemakaian</strong></td>
+            <td>:</td>
+            <td><%= new Date(b.start_time).toLocaleString('id-ID') %> s.d <%= new Date(b.end_time).toLocaleString('id-ID') %></td>
+        </tr>
+        <tr>
+            <td><strong>Keperluan</strong></td>
+            <td>:</td>
+            <td><%= b.purpose %></td>
+        </tr>
+        <tr>
+            <td><strong>Status Dokumen</strong></td>
+            <td>:</td>
+            <td><strong><%= b.status.toUpperCase() %></strong></td>
+        </tr>
+    </table>
+
+    <p>Demikian surat izin ini diterbitkan untuk dipergunakan sebagaimana mestinya. Peminjam bertanggung jawab penuh atas kebersihan, ketertiban, dan keamanan fasilitas ruangan selama masa peminjaman.</p>
+
+    <div class="ttd-container">
+        <p>Padang, <%= new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %><br>
+        Penanggung Jawab Ruangan,</p>
+        <br><br><br><br>
+        <p><strong><u>Husnil Kamil,M.T.</u></strong><br>
+        NIP. 198XXXXXXXXXXXXXX</p>
+    </div>
+
+    <script>
+        window.onload = function() { window.print(); }
+    </script>
+
+</body>
+</html>
